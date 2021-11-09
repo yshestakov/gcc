@@ -1940,7 +1940,7 @@ pdp11_expand_shift (rtx *operands, rtx (*shift_sc) (rtx, rtx, rtx),
   
   if (CONST_INT_P (operands[2]) && pdp11_small_shift (INTVAL (operands[2])))
     emit_insn ((*shift_sc) (operands[0], operands[1], operands[2]));
-  else if (TARGET_40_PLUS)
+  else if (SUPP_INSN_ASH)
     return false;
   else
     {
@@ -1983,7 +1983,7 @@ pdp11_assemble_shift (rtx *operands, machine_mode m, int code)
   pdp11_action action[2];
   const bool small = CONST_INT_P (operands[2]) && pdp11_small_shift (INTVAL (operands[2]));
 
-  gcc_assert (small || !TARGET_40_PLUS);
+  gcc_assert (small || !(SUPP_INSN_ASH));
 
   if (m == E_SImode)
     {

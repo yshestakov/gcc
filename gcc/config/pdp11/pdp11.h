@@ -27,6 +27,7 @@ along with GCC; see the file COPYING3.  If not see
 #define CPU_REG_P(x)	((x) <= PC_REGNUM)
 
 /* Names to predefine in the preprocessor for this target machine.  */
+//    fprintf(stderr, "<pdp11 target_flags %04x>\n", target_flags);
 
 #define TARGET_CPU_CPP_BUILTINS()		\
   do						\
@@ -36,7 +37,11 @@ along with GCC; see the file COPYING3.  If not see
 	builtin_define_with_int_value ("__pdp11_int", 16);	\
       else							\
 	builtin_define_with_int_value ("__pdp11_int", 32);	\
-      if (TARGET_40)						\
+      if (TARGET_BM1)					\
+	builtin_define_with_int_value ("__pdp11_model", 39);	\
+      else if (TARGET_BM2)					\
+	builtin_define_with_int_value ("__pdp11_model", 41);	\
+      else if (TARGET_40)						\
 	builtin_define_with_int_value ("__pdp11_model", 40);	\
       else if (TARGET_45)					\
 	builtin_define_with_int_value ("__pdp11_model", 45);	\
@@ -54,8 +59,17 @@ along with GCC; see the file COPYING3.  If not see
 
 #define DBX_DEBUGGING_INFO
 
-#define TARGET_40_PLUS		(TARGET_40 || TARGET_45)
-#define TARGET_10		(! TARGET_40_PLUS)
+#define TARGET_40_PLUS		(TARGET_BM2 || TARGET_40 || TARGET_45)
+#define TARGET_BM_ANY	    (TARGET_BM1 || TARGET_BM2)
+#define TARGET_10		(! (TARGET_40_PLUS))
+
+// #define SUPP_INSN_SOB ((TARGET_BM_ANY) || (TARGET_40_PLUS))
+#define SUPP_INSN_SOB (!TARGET_10)
+#define SUPP_INSN_XOR (!TARGET_10)
+// #define SUPP_INSN_MUL (TARGET_40_PLUS || TARGET_BM2)
+#define SUPP_INSN_MUL (TARGET_40_PLUS && !TARGET_BM1)
+// #define SUPP_INSN_ASH (TARGET_40_PLUS && !TARGET_BM1)
+#define SUPP_INSN_ASH (target_flags & (MASK_BM2|MASK_40|MASK_45) != 0)
 
 #define TARGET_UNIX_ASM_DEFAULT	0
 
@@ -71,7 +85,7 @@ along with GCC; see the file COPYING3.  If not see
 #define SHORT_TYPE_SIZE		16
 #define INT_TYPE_SIZE		(TARGET_INT16 ? 16 : 32)
 #define LONG_TYPE_SIZE		32
-#define LONG_LONG_TYPE_SIZE	64     
+#define LONG_LONG_TYPE_SIZE	64
 
 /* In earlier versions, FLOAT_TYPE_SIZE was selectable as 32 or 64,
    but that conflicts with Fortran language rules.  Since there is no
@@ -106,7 +120,7 @@ along with GCC; see the file COPYING3.  If not see
 /* Define that floats are in VAX order, not high word first as for ints.  */
 #define FLOAT_WORDS_BIG_ENDIAN 0
 
-/* Width of a word, in units (bytes). 
+/* Width of a word, in units (bytes).
 
    UNITS OR BYTES - seems like units */
 #define UNITS_PER_WORD 2
@@ -157,7 +171,7 @@ extern const struct real_format pdp11_d_format;
    All registers that the compiler knows about must be given numbers,
    even those that are not normally considered general registers.
 
-   we have 8 integer registers, plus 6 float 
+   we have 8 integer registers, plus 6 float
    (don't use scratch float !) */
 
 /* 1 for registers that have pervasive standard uses
@@ -166,7 +180,7 @@ extern const struct real_format pdp11_d_format;
    On the pdp, these are:
    Reg 7	= pc;
    reg 6	= sp;
-   reg 5	= fp;  not necessarily! 
+   reg 5	= fp;  not necessarily!
 */
 
 #define FIXED_REGISTERS  \
